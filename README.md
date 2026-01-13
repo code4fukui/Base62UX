@@ -2,7 +2,7 @@
 
 ![Base62UX_logo.png](Base62UX_logo.png)
 
-- Base62UX.encode(b32) → P5lt_GtNcx5qxe5K8OXD8leF276Ixs9UtX3t78NORUrV
+- Base62UX.encode(b32, 4) → P5lt_GtNcx5qxe5K8OXD8leF276Ixs9UtX3t78NORUrV
 
 - **Base62UX** is a human-centered Base62 encoding designed to optimize copy, paste, and visual handling of binary identifiers.
 

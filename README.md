@@ -6,6 +6,8 @@
 
 - **Base62UX** は、バイナリデータ（公開鍵・ID など）を Base64と同程度の短さで、記号を含まず、コピーしやすい形で表現するための Base62 の一種です。
 
+- ex) P5lt_GtNcx5qxe5K8OXD8leF276Ixs9UtX3t78NORUrV
+
 ## Usage
 
 ```js

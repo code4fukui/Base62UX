@@ -22,7 +22,7 @@ export class Base62UX {
    * @param {Uint8Array} bytes
    * @returns {string}
    */
-  static encode(bytes, separator = 0) {
+  static encode(bytes, separator = 4) {
     if (isNaN(separator) || typeof separator != "number" || Math.floor(separator) != separator) {
       throw new TypeError("Base62UX.encode: invalid separator");
     }

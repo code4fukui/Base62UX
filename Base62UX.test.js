@@ -38,9 +38,15 @@ Deno.test("decode: underscores are ignored", () => {
   assertBytesEq(decoded, bytes);
 });
 
-Deno.test("encode: canonical form contains no underscores", () => {
+Deno.test("encode: default encode has 1 underscore at index 4", () => {
   const bytes = crypto.getRandomValues(new Uint8Array(32));
   const s = Base62UX.encode(bytes);
+  assert(s.indexOf("_") == 4, "default output has '_' at 4");
+});
+
+Deno.test("encode: canonical form contains no underscores", () => {
+  const bytes = crypto.getRandomValues(new Uint8Array(32));
+  const s = Base62UX.normalize(Base62UX.encode(bytes));
   assert(!s.includes("_"), "canonical output must not include '_'");
 });
 
@@ -77,7 +83,7 @@ Deno.test("leading zero bytes: preserved as leading '0' chars", () => {
 
 Deno.test("all-zero bytes: encodes to as many '0' as bytes length", () => {
   const bytes = new Uint8Array(10); // all zeros
-  const s = Base62UX.encode(bytes);
+  const s = Base62UX.normalize(Base62UX.encode(bytes));
   assertEquals(s, "0".repeat(10));
 
   const decoded = Base62UX.decode(s);
@@ -114,10 +120,10 @@ Deno.test("decode: underscores may appear anywhere (including leading)", () => {
 
 Deno.test("idempotence: encode(decode(s)) produces canonical (no underscores)", () => {
   const bytes = crypto.getRandomValues(new Uint8Array(32));
-  const s = Base62UX.encode(bytes);
+  const s = Base62UX.encode(bytes, 0);
   const su = s.replace(/(.{5})/g, "$1_");
 
-  const round = Base62UX.encode(Base62UX.decode(su));
+  const round = Base62UX.encode(Base62UX.decode(su), 0);
   assertEquals(round, s);
   assert(!round.includes("_"));
 });
@@ -143,28 +149,25 @@ Deno.test("encode(bin, idxseparator): inserts '_' every N chars and decodes back
     assertBytesEq(decoded, bytes, `roundtrip failed for idxseparator=${n}`);
 
     // canonicalization check: removing underscores equals canonical encoding
-    const canon = Base62UX.encode(bytes);
+    const canon = Base62UX.encode(bytes, 0);
     assertEquals(Base62UX.normalize(s), canon, `normalize mismatch for idxseparator=${n}`);
   }
 });
 
-Deno.test("encode(bin, idxseparator): 0/undefined produces canonical (no '_')", () => {
+Deno.test("encode(bin, idxseparator): 0 produces canonical (no '_')", () => {
   const bytes = crypto.getRandomValues(new Uint8Array(32));
 
   const s0 = Base62UX.encode(bytes, 0);
-  const su = Base62UX.encode(bytes, undefined);
 
-  const canon = Base62UX.encode(bytes);
+  const canon = Base62UX.normalize(Base62UX.encode(bytes));
 
   assertEquals(s0, canon);
-  assertEquals(su, canon);
   assert(!s0.includes("_"));
-  assert(!su.includes("_"));
 });
 
 Deno.test("encode(bin, idxseparator): preserves leading zero bytes and keeps grouping", () => {
   const bytes = new Uint8Array([0, 0, 0, 1, 2, 3, 4, 5]);
-  const canon = Base62UX.encode(bytes);
+  const canon = Base62UX.encode(bytes, 0);
   assert(canon.startsWith("000"), "canonical must preserve leading zeros as '0'");
 
   const grouped = Base62UX.encode(bytes, 4);
@@ -180,8 +183,9 @@ Deno.test("encode(bin, idxseparator): invalid separator values", () => {
 
   // Adjust these expectations to match your implementation policy.
   // Here we assume non-positive => canonical; non-integer/NaN => throw.
-  assertEquals(Base62UX.encode(bytes, -1), Base62UX.encode(bytes));
-  assertEquals(Base62UX.encode(bytes, 0), Base62UX.encode(bytes));
+  assertEquals(Base62UX.encode(bytes, -1), Base62UX.encode(bytes, 0));
+  assertEquals(Base62UX.encode(bytes, 0), Base62UX.encode(bytes, 0));
+  assertEquals(Base62UX.encode(bytes), Base62UX.encode(bytes, 4)); // default
 
   assertThrows(() => Base62UX.encode(bytes, NaN), TypeError);
   assertThrows(() => Base62UX.encode(bytes, 1.5), TypeError);
